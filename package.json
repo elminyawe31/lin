@@ -1,0 +1,15 @@
+{
+  "name": "minyawe-link",
+  "version": "7.0.0",
+  "description": "MINYAWE-LINK V7.0 by ELMINYAWE - SQLite DB, multi-cloud storage, notifications, health monitoring, cache, resume download, social sharing",
+  "main": "server.js",
+  "engines": { "node": ">=20" },
+  "scripts": { "start": "node server.js" },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "better-sqlite3": "^11.10.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "multer": "^2.0.2"
+  }
+}
