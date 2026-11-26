@@ -1,5 +1,5 @@
-// MINYAWE-LINK V8.0 — اختبار E2E محلي شامل (against localhost:3100)
-const BASE = 'http://localhost:3100';
+// MINYAWE-LINK V8.0 — اختبار E2E محلي شامل (node tests/e2e.mjs [baseUrl])
+const BASE = String(process.argv[2] || 'http://localhost:3100').replace(/\/$/, '');
 let pass = 0, fail = 0;
 function ok(name, cond, extra = '') {
   if (cond) { pass++; console.log('  PASS ' + name + (extra ? ' :: ' + extra : '')); }
