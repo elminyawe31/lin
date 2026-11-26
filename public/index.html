@@ -562,7 +562,7 @@ body.admin-on .only-me{border-color:var(--c-green)}
           <div class="chiprow"><span class="echip"></span><span class="wave">)))</span></div>
           <div class="ebrand"><span class="emark">M</span>MINYAWE-LINK</div>
           <div class="enum">elminyawe-link <span class="dim">/v /e /d</span><br>direct-link <span class="dim">• mp3 • mp4</span></div>
-          <div class="ehold"><span>ELMINYAWE</span><span class="exp">30d • 200MB</span></div>
+          <div class="ehold"><span>ELMINYAWE</span><span class="exp">30d • 100MB</span></div>
         </div>
         </div>
         <div class="beam-w"></div>
@@ -580,7 +580,7 @@ body.admin-on .only-me{border-color:var(--c-green)}
 
     <div class="logos">
       <div class="cap">يشتغل مع أدواتك المفضلة — من غير إعدادات معقدة</div>
-      <div class="grid"><span class="t">SHAREX</span><span class="t">DISCORD</span><span class="t">TELEGRAM</span><span class="t">200MB</span><span class="t">CTRL+V</span><span class="t">REST API</span></div>
+      <div class="grid"><span class="t">SHAREX</span><span class="t">DISCORD</span><span class="t">TELEGRAM</span><span class="t">100MB</span><span class="t">CTRL+V</span><span class="t">REST API</span></div>
     </div>
 
     <section class="block" id="feat">
@@ -640,10 +640,11 @@ body.admin-on .only-me{border-color:var(--c-green)}
           <input type="file" id="f" multiple>
           <div class="expr" id="exps">
             <span class="lbl">مدة الاحتفاظ — Retention</span>
+            <button type="button" class="chip on" data-v="never">دائم</button>
             <button type="button" class="chip" data-v="1h">ساعة</button>
             <button type="button" class="chip" data-v="24h">24 ساعة</button>
             <button type="button" class="chip" data-v="7d">7 أيام</button>
-            <button type="button" class="chip on" data-v="30d">شهر</button>
+            <button type="button" class="chip" data-v="30d">شهر</button>
           </div>
           <div class="aliasrow"><span>اسم مخصص للرابط (اختياري — لملف واحد فقط)</span><input id="alias" maxlength="30" placeholder="my-song" dir="ltr"></div>
           <div class="aliasrow"><span>باسورد للملف (اختياري — min 3 حروف)</span><input id="fpass" type="password" maxlength="128" placeholder="اتركه فاضي لملف مفتوح" dir="ltr" autocomplete="off"></div>
@@ -696,7 +697,7 @@ body.admin-on .only-me{border-color:var(--c-green)}
       <div class="adm-tools">
         <input id="admSearch" placeholder="دوّر بالاسم أو الرابط… (Enter)" dir="ltr" onkeydown="if(event.key==='Enter')loadAdminFiles()">
         <button type="button" class="btn-ghost sm" onclick="loadAdminFiles()">بحث</button>
-        <button type="button" class="btn-ghost sm" onclick="doBackup()">⬇ نسخ احتياطي ZIP</button>
+        <button type="button" class="btn-ghost sm" onclick="doBackup()">⬇ نسخ احتياطي JSON</button>
       </div>
       <div class="filelist" id="adminlist"><div class="frow"><span class="fn">فعّل الأدمن ودوّر على ملفاتك هنا</span></div></div>
     </section>
@@ -767,7 +768,7 @@ body.admin-on .only-me{border-color:var(--c-green)}
         <div class="srow"><span class="k">التخزين</span><span class="v" id="st-storage">—</span></div>
         <div class="srow"><span class="k">سلسلة الطوارئ</span><span class="v" id="st-chain">—</span></div>
         <div class="srow"><span class="k">أقصى حجم ملف</span><span class="v" id="st-max">—</span></div>
-        <div class="srow"><span class="k">مساحة الفوليوم الفاضية</span><span class="v" id="st-disk">—</span></div>
+        <div class="srow"><span class="k">قاعدة البيانات</span><span class="v" id="st-disk">—</span></div>
         <div class="srow"><span class="k">زمن الاستجابة</span><span class="v" id="st-ping">—</span></div>
       </div>
     </section>
@@ -775,7 +776,7 @@ body.admin-on .only-me{border-color:var(--c-green)}
 
   <!-- FOOTER -->
   <footer>
-    <div class="fl"><a data-tab-go="api" style="cursor:pointer">API</a><a data-tab-go="api" style="cursor:pointer">Agents</a><span class="ver-chip">v6.5</span></div>
+    <div class="fl"><a data-tab-go="api" style="cursor:pointer">API</a><a data-tab-go="api" style="cursor:pointer">Agents</a><span class="ver-chip">v8.0</span></div>
     <div class="fm"><span class="dev-badge"><span class="dot-w"></span>Dev <b>ELMINYAWE</b></span><span class="only-me" id="onlyMe" onclick="admOpen()" title="وضع الأدمن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span id="onlyMeTxt">ONLY ME</span></span></div>
   </footer>
 </div>
@@ -849,7 +850,7 @@ async function loadDocs(){
         +'<span class="ds">'+escH(sub)+'</span></div>';
     }).join('');
     var lim='<div class="limitchips"><span>max '+((d.limits&&d.limits.maxMB)||200)+'MB</span>'
-      +'<span>'+escH(((d.limits&&d.limits.expiryValues)||['1h','24h','7d','30d']).join(' • '))+'</span>'
+      +'<span>'+escH(((d.limits&&(d.limits.retention||d.limits.expiryValues))||['never','1h','24h','7d','30d']).join(' • '))+'</span>'
       +'<span>'+escH(((d.storage&&d.storage.chain)||[]).join(' → '))+'</span></div>';
     if(box)box.innerHTML=rows+lim;
   }catch(e){if(box)box.innerHTML='<div style="font-family:var(--f-mono);font-size:12px;color:#ff9592">تعذر تحميل التوثيق — السيرفر مش متاح</div>';}
@@ -938,12 +939,13 @@ async function loadStatus(){
     if(document.getElementById('st-chain'))document.getElementById('st-chain').textContent=(c.chain||[c.storage]).map(function(s){return bn(s).replace('MINYAWE ','');}).join(' → ');
     if(document.getElementById('st-mirror'))document.getElementById('st-mirror').textContent=c.mirror||'—';
     document.getElementById('st-max').textContent=c.maxMB+'MB';
-    if(document.getElementById('st-disk'))document.getElementById('st-disk').textContent=c.disk?(c.disk.freeMB+'MB / '+c.disk.totalMB+'MB'):'—';
+    window.__mwCfg=c;
+    if(document.getElementById('st-disk'))document.getElementById('st-disk').textContent=c.db?(c.db.type==='postgres'?'PostgreSQL ✓':'DEV-JSON'):'—';
     document.getElementById('st-ping').textContent=ms+'ms';
   }catch(e){dot.classList.add('bad');st.textContent='OFFLINE — retrying…';}
 }
 /* upload */
-let exp='30d';
+let exp='never';
 document.querySelectorAll('#exps .chip').forEach(function(b){b.onclick=function(e){e.stopPropagation();document.querySelectorAll('#exps .chip').forEach(function(x){x.classList.remove('on');});b.classList.add('on');exp=b.dataset.v;};});
 const fi=document.getElementById('f'),drop=document.getElementById('drop'),dl=document.getElementById('dlabel');
 fi.onchange=function(){
@@ -965,7 +967,7 @@ document.addEventListener('paste',function(e){
   toast('اتلصق الملف — جاري الرفع…');
   up();
 });
-fetch('/api/config?t='+Date.now()).then(function(r){return r.json();}).then(function(j){document.getElementById('cfg').textContent='VAULT READY :: max '+j.maxMB+'MB :: MINYAWE-VAULT :: direct-link ON :: max-expiry 30d';}).catch(function(){document.getElementById('cfg').innerText='vault offline — retrying…';});
+fetch('/api/config?t='+Date.now()).then(function(r){return r.json();}).then(function(j){window.__mwCfg=j;document.getElementById('cfg').textContent='VAULT READY :: max '+j.maxMB+'MB :: MINYAWE-CLOUD :: direct-link ON :: retention PERMANENT';}).catch(function(){document.getElementById('cfg').innerText='vault offline — retrying…';});
 function fmt(s){if(!s)return'—';var d=new Date(s);return d.toLocaleString('ar-EG');}
 function fmtB(b){b=b||0;if(b<1048576)return Math.round(b/1024)+' KB';if(b<1073741824)return (b/1048576).toFixed(1)+' MB';return (b/1073741824).toFixed(2)+' GB';}
 function shareRow(u){
@@ -1185,7 +1187,63 @@ async function loadStats(){
     }else box.style.display='none';
   }catch(e){}
 }
-/* رفع متعدد: كل ملف request لوحده + شريط تقدم خاص + باسورد + اسم مخصص (لملف واحد) */
+/* رفع متعدد — مسارين: مباشر من المتصفح للمزود السحابي (لحد 100MB — صفر تحميل على السيرفر) أو عبر السيرفر (≤4.5MB) */
+function qrow(k){return document.getElementById('qf'+k);}
+function qset(k,pct,txt,cls,ops){
+  var row=qrow(k);if(!row)return;
+  row.querySelector('.qbar i').style.width=Math.round(pct*100)+'%';
+  row.querySelector('.qst').textContent=txt;
+  if(cls)row.classList.add(cls);
+  if(ops)row.querySelector('.qops').innerHTML=ops;
+}
+function qmeta(k,txt){var row=qrow(k);if(row)row.querySelector('.qm').textContent=txt;}
+function forceDownload(u,name){try{var a=document.createElement('a');a.href=u;if(name)a.download=String(name).replace(/[\'"\\]/g,'');document.body.appendChild(a);a.click();a.remove();}catch(e){window.open(u,'_blank');}}
+async function directUpload(f,alias,pw,k){
+  return new Promise(function(res,rej){
+    var fd=new FormData();fd.append('file',f);
+    var x=new XMLHttpRequest();x.open('POST','https://api.onlyfiles.com/v1/upload');
+    x.timeout=300000;
+    x.upload.onprogress=function(e){if(e.lengthComputable)qset(k,e.loaded/e.total*0.9,Math.round(e.loaded/e.total*100)+'%');};
+    x.onload=function(){
+      try{
+        var r=JSON.parse(x.responseText);
+        if(!r.status||!r.data||!r.data.file)throw new Error((r.error&&r.error.message)?r.error.message:('HTTP '+x.status));
+        qset(k,0.95,'جاري التسجيل…');
+        var body={provider:'onlyfiles',fullUrl:r.data.file.url.full,shortUrl:r.data.file.url.short,providerId:r.data.file.metadata.id,filename:f.name,mimetype:f.type||'',size:f.size,expiry:exp};
+        if(k===0&&alias)body.alias=alias;
+        if(pw)body.password=pw;
+        fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+        .then(function(reg){return reg.json().then(function(j){return {ok:reg.ok,j:j};});})
+        .then(function(rr){if(!rr.ok)throw new Error(rr.j.error||('HTTP '+x.status));res(rr.j);})
+        .catch(rej);
+      }catch(err){rej(err);}
+    };
+    x.onerror=function(){rej(new Error('فشل الاتصال بالمزود السحابي'));};
+    x.ontimeout=function(){rej(new Error('انتهت مدة الرفع — جرب تاني'));};
+    x.send(fd);
+  });
+}
+async function serverUpload(f,alias,pw,k){
+  var fd=new FormData();fd.append('file',f);fd.append('expiry',exp);
+  if(k===0&&alias)fd.append('alias',alias);
+  if(pw)fd.append('password',pw);
+  var rr=await postForm('/api/upload',fd,function(p){qset(k,p*0.9+0.05,Math.round(p*100)+'%');});
+  if(!rr.ok)throw new Error(rr.j.error||'upload failed');
+  return rr.j;
+}
+async function upOne(f,alias,pw,k){
+  var maxMB=(window.__mwCfg&&window.__mwCfg.maxMB)||100;
+  var direct=window.__mwCfg&&window.__mwCfg.direct&&window.__mwCfg.directProviders&&window.__mwCfg.directProviders.indexOf('onlyfiles')>=0;
+  if(f.size>maxMB*1048576)throw new Error('الحد الأقصى '+maxMB+'MB حالياً');
+  if(direct){
+    try{return await directUpload(f,alias,pw,k);}
+    catch(e){
+      if(f.size<=4.5*1048576){qset(k,0.05,'المسار المباشر فشل — جاري المحاولة عبر السيرفر…');return await serverUpload(f,alias,pw,k);}
+      throw e;
+    }
+  }
+  return await serverUpload(f,alias,pw,k);
+}
 async function up(){
   if(!fi.files.length){toast('اختار ملف الأول','#ffca16');return;}
   var files=[];for(var i=0;i<fi.files.length;i++)files.push(fi.files[i]);
@@ -1201,33 +1259,18 @@ async function up(){
       +'<div class="qm">'+fmtB(f.size)+' • في الانتظار</div><div class="qbar"><i></i></div>'
       +'<div class="qst">بانتظار الدور…</div><div class="qops"></div></div>';
   }).join('');
-  function qrow(k){return document.getElementById('qf'+k);}
-  function qset(k,pct,txt,cls,ops){
-    var row=qrow(k);if(!row)return;
-    row.querySelector('.qbar i').style.width=Math.round(pct*100)+'%';
-    row.querySelector('.qst').textContent=txt;
-    if(cls)row.classList.add(cls);
-    if(ops)row.querySelector('.qops').innerHTML=ops;
-  }
-  function qmeta(k,txt){var row=qrow(k);if(row)row.querySelector('.qm').textContent=txt;}
   function opsFor(j){
     return '<button type="button" class="btn-ghost sm" onclick="window.open(\''+j.view+'\',\'_blank\')">عرض</button>'
-      +'<button type="button" class="btn-ghost sm" onclick="copyText(\''+j.view+'\',\'تم النسخ ✓\')">نسخ</button>'
-      +'<button type="button" class="btn-ghost sm" onclick="copyText(\''+j.stream+'\',\'تم نسخ المباشر ✓\')">مباشر</button>';
+      +'<button type="button" class="btn-ghost sm" onclick="window.open(\''+(j.open||j.stream)+'\',\'_blank\')">تشغيل</button>'
+      +'<button type="button" class="btn-ghost sm" onclick="copyText(\''+j.view+'\',\'تم النسخ ✓\')">نسخ</button>';
   }
   var okN=0,lastJ=null,lastF=null;
   for(var k=0;k<files.length;k++){
     btn.innerText='جاري الرفع… ('+k+'/'+files.length+')';
     var f=files[k];
-    qmeta(k,fmtB(f.size)+' • بيترفع…');
+    qmeta(k,fmtB(f.size)+' • بيترفع مباشر للمزود…');
     try{
-      var fd=new FormData();fd.append('file',f);fd.append('expiry',exp);
-      if(k===0&&alias)fd.append('alias',alias);
-      if(pw)fd.append('password',pw);
-      var prg=(function(kk){return function(p){qset(kk,p,Math.round(p*100)+'%');};})(k);
-      var rr=await postForm('/api/upload',fd,prg);
-      var j=rr.j;
-      if(!rr.ok)throw new Error(j.error||'upload failed');
+      var j=await upOne(f,alias,pw,k);
       okN++;lastJ=j;lastF=f;
       qset(k,1,'تم ✓'+(j.locked?' • 🔒 محمي':''),'done',opsFor(j));
       qmeta(k,fmtB(f.size)+' • ينتهي: '+(j.expiryAt?fmt(j.expiryAt):'—'));
@@ -1246,8 +1289,8 @@ async function up(){
       +'<div class="meta">'+escH(lastF.name)+' • ينتهي: '+(lastJ.expiryAt?fmt(lastJ.expiryAt):'—')+'</div>'
       +prev+'<div class="brow">'
       +'<button type="button" class="btn-ghost sm" onclick="window.open(\''+lastJ.view+'\',\'_blank\')">عرض</button>'
-      +'<button type="button" class="btn-ghost sm" onclick="window.open(\''+lastJ.stream+'\',\'_blank\')">تشغيل مباشر</button>'
-      +'<button type="button" class="btn-ghost sm" onclick="window.open(\''+lastJ.download+'\',\'_blank\')">تحميل</button></div>'
+      +'<button type="button" class="btn-ghost sm" onclick="window.open(\''+(lastJ.open||lastJ.stream)+'\',\'_blank\')">تشغيل مباشر</button>'
+      +'<button type="button" class="btn-ghost sm" onclick="forceDownload(\''+lastJ.download+'\',\''+escH(lastF.name)+'\')">تحميل</button></div>'
       +'<div class="brow"><button type="button" class="btn-ghost sm" onclick="copyText(\''+lastJ.view+'\',\'تم نسخ رابط العرض ✓\')">نسخ العرض</button>'
       +'<button type="button" class="btn-ghost sm" onclick="copyText(\''+lastJ.stream+'\',\'تم نسخ الرابط المباشر ✓\')">نسخ المباشر</button></div>'
       +shareRow(lastJ.view)
@@ -1265,7 +1308,7 @@ async function up(){
   var PHRASES=[
     {t:'elminyawe-link :: direct-link ON',c:''},
     {t:'/v view • /e stream.mp3 • /d dl',c:'g'},
-    {t:'minyawe-vault -- 200MB -- 30d',c:''},
+    {t:'minyawe-vault -- 100MB -- permanent',c:''},
     {t:'sharex → api/upload ✓ discord ✓',c:'b'},
     {t:'stream mp3 • mp4 with seek',c:'g'},
     {t:'album / qr / views / alias',c:''},
@@ -1273,7 +1316,7 @@ async function up(){
     {t:'cors open • inline • no-signup',c:''},
     {t:'/e/song.mp3 → plays everywhere',c:'g'},
     {t:'/v/photo.jpg → preview + share',c:''},
-    {t:'retention 1h 24h 7d 30d ✓',c:'b'},
+    {t:'retention: permanent default ✓ 1h..30d',c:'b'},
     {t:'MINYAWE-LINK by ELMINYAWE',c:'g'}
   ];
   var ROWS=9, cols=[];
@@ -1441,20 +1484,21 @@ async function loadHealth(){
     var r=await fetch('/api/health');
     var j=await r.json();
     var status=j.status||'unknown';
-    var statusText=status==='healthy'?'سليم':status==='warning'':'تحذير':'حرج';
+    var statusText=status==='healthy'?'سليم':(status==='warning'?'تحذير':'حرج');
     var html='<div class="health-status">'
       +'<span class="health-dot '+status+'"></span>'
       +'<span>'+statusText+'</span>'
       +'</div>';
     if(j.checks){
-      if(j.checks.disk){
-        html+='<div class="health-item">💾 القرص: '+j.checks.disk.freeMB+' MB متاح</div>';
+      if(j.checks.database){
+        html+='<div class="health-item">🗄️ قاعدة البيانات: '+(j.checks.database.connected?'متصلة ✓':'غير متصلة ✗')+'</div>';
       }
       if(j.checks.memory){
         html+='<div class="health-item">🧠 الذاكرة: '+j.checks.memory.usedMB+' MB مستخدم</div>';
       }
-      if(j.checks.database){
-        html+='<div class="health-item">🗄️ قاعدة البيانات: '+(j.checks.database.connected?'متصلة':'غير متصلة')+'</div>';
+      if(j.checks.providers){
+        var pv=Object.keys(j.checks.providers).map(function(k){return k+': '+(j.checks.providers[k].ok?'✓':'✗');}).join(' • ');
+        html+='<div class="health-item">☁️ المزودون السحابيون: '+escH(pv)+'</div>';
       }
     }
     list.innerHTML=html;
