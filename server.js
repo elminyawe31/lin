@@ -58,7 +58,10 @@ const MAX_MB = parseInt(process.env.MAX_FILE_SIZE_MB || '100', 10);
 const SERVER_LIMIT_BYTES = 4.5 * 1024 * 1024; // حد Vercel لجسم الطلب
 const BRAND = 'MINYAWE-LINK | ELMINYAWE';
 const VERSION = '8.0';
-const RESERVED_SLUGS = new Set(['api', 'health', 'v', 'e', 'd', 'i', 'o', 'a', 'admin', 'config', 'docs', 'stats', 'cron', 'public', 'llms.txt', 'favicon.svg']);
+const RESERVED_SLUGS = new Set(['api', 'health', 'v', 'e', 'd', 'i', 'o', 'p', 'a', 'admin', 'config', 'docs', 'stats', 'cron', 'public', 'llms.txt', 'favicon.svg']);
+
+// الحد الأقصى لحجم PDF يتعرض عبر البروكسي — أكبر منه بيتحول لتحميل مباشر
+const PDF_MAX_BYTES = 25 * 1024 * 1024;
 
 // ===== دوال مساعدة =====
 function clientIp(req) {
@@ -128,6 +131,7 @@ function kindOf(meta) {
   if (mt.startsWith('video/')) return 'video';
   if (mt.startsWith('audio/')) return 'audio';
   const e = path.extname(meta.original || '').toLowerCase();
+  if (mt === 'application/pdf' || e === '.pdf') return 'pdf';
   if (mt.startsWith('text/') || mt === 'application/json' || ['.md', '.json', '.js', '.py', '.css', '.csv', '.log', '.xml', '.yml', '.yaml', '.sh', '.txt'].includes(e)) return 'text';
   return 'file';
 }
@@ -161,7 +165,8 @@ function fileLinks(req, id, meta) {
     view: `${b}/v/${key}`,
     stream: `${b}/e/${key}.${ext}`,
     download: `${b}/d/${key}.${ext}`,
-    open: `${b}/o/${key}.${ext}`
+    open: `${b}/o/${key}.${ext}`,
+    proxy: `${b}/p/${key}.${ext}`
   };
 }
 
@@ -361,6 +366,7 @@ app.get('/api/docs', (req, res) => {
       { method: 'GET', path: '/api/stats', desc: 'dashboard stats' },
       { method: 'GET', path: '/v/:id', desc: 'preview page with player' },
       { method: 'GET', path: '/o/:id.ext', desc: 'branded raw player page (keeps your domain in the address bar)' },
+      { method: 'GET', path: '/p/:id.ext', desc: 'inline PDF viewer — serves small PDFs (≤25MB) inline with edge caching; non-PDF redirects to /o, oversized to /d' },
       { method: 'GET', path: '/e/:id.ext', desc: 'direct stream — 302 redirect to provider (Range supported by provider)' },
       { method: 'GET', path: '/d/:id.ext', desc: 'direct download — 302 redirect to provider' },
       { method: 'GET', path: '/i/:id', desc: 'short link — 302 redirect' },
@@ -413,6 +419,7 @@ GET ${b}/api/cache/stats => { memoryKeys }
 ## Links (replace :id)
 - Preview page: ${b}/v/:id
 - Branded raw player: ${b}/o/:id.ext
+- Inline PDF viewer (≤25MB, edge-cached): ${b}/p/:id.ext
 - Direct stream (302 -> provider, Range OK): ${b}/e/:id.ext
 - Direct download (302 -> provider): ${b}/d/:id.ext
 - Short redirect: ${b}/i/:id
@@ -654,6 +661,7 @@ app.get('/o/:file', async (req, res) => {
   const L = fileLinks(req, meta.id, meta);
   const stream = L.stream + keepPw;
   const dl = L.download + keepPw;
+  const proxy = L.proxy + keepPw;
   const name = esc(meta.original), kind = kindOf(meta);
   const size = ((meta.size || 0) / 1048576).toFixed(2) + ' MB';
 
@@ -661,6 +669,16 @@ app.get('/o/:file', async (req, res) => {
   if (kind === 'image') player = `<img src="${stream}" alt="${name}">`;
   else if (kind === 'video') player = `<video src="${stream}" controls playsinline autoplay></video>`;
   else if (kind === 'audio') player = `<audio src="${stream}" controls autoplay></audio>`;
+  else if (kind === 'pdf') {
+    // iOS Safari مش بيعرض PDF جوه iframe — بنديله زر فتح مباشر (التنقل المباشر بيشتغل)
+    const ios = /iPad|iPhone|iPod/i.test(String(req.get('user-agent') || ''));
+    const big = (meta.size || 0) > PDF_MAX_BYTES;
+    player = big
+      ? `<div class="file">📄<div class="fn">${name}</div><div class="sz">${size}</div></div>`
+      : ios
+        ? `<div class="file">📄<div class="fn">${name}</div><div class="sz">${size}</div><div style="margin-top:16px"><a class="btn" href="${proxy}" target="_blank" rel="nofollow">افتح الـPDF</a></div></div>`
+        : `<iframe class="pdf" src="${proxy}" title="${name}" loading="lazy"></iframe>`;
+  }
   else if (kind === 'text') {
     let snippet = '';
     try {
@@ -680,6 +698,7 @@ app.get('/o/:file', async (req, res) => {
 <style>body{margin:0;background:#000;color:#f0f0f0;font-family:Inter,system-ui,sans-serif;text-align:center;padding:24px 16px 60px}
 .wrap{max-width:920px;margin:0 auto}.logo{font-weight:600;color:#fff;text-decoration:none}
 img,video{max-width:100%;max-height:78vh;border-radius:16px}audio{width:100%;margin-top:12px}
+iframe.pdf{width:100%;height:78vh;border:1px solid #292d30;border-radius:16px;background:#111;display:block;margin:0 auto}
 .fn{font-family:monospace;font-size:13px;word-break:break-all;margin:8px 0;color:#f0f0f0}
 pre.txt{direction:ltr;text-align:left;background:#000;border:1px solid #292d30;border-radius:16px;padding:24px;font-family:monospace;font-size:13px;white-space:pre-wrap;word-break:break-word;max-height:70vh;overflow:auto;margin-top:12px;color:#f0f0f0}
 .sz{font-family:monospace;font-size:12px;color:#a1a4a5}.meta{font-family:monospace;font-size:12px;color:#a1a4a5;margin-top:10px}
@@ -691,6 +710,55 @@ footer{margin-top:28px;font-family:monospace;font-size:12px;color:#464a4d}footer
 ${player}<div class="meta">${size} • المشاهدات: ${meta.views || 0}</div>
 <div class="btns"><a class="btn" href="${dl}" download="${esc(meta.original)}">تحميل الملف</a><a class="btn" href="${L.view}">صفحة العرض</a></div>
 <footer>Dev <b>ELMINYAWE</b></footer></div></body></html>`);
+});
+
+// ===== عرض PDF: بروكسي inline — المزود بيبعت content-disposition: attachment فالمتصفح مش بيعرضه جوه الصفحة
+// البروكسي ده للـPDF الصغير فقط (≤25MB) + كاش على حواف Vercel يوماً كامل للملفات العامة
+// — أول مشاهدة بس بتعد على الكوتة، والباقي من الكاش مجاناً. الفيديو/الصور/الأوديو تفضل 302 صفر كوتة.
+app.get('/p/:file', async (req, res) => {
+  try {
+    const pk = parseKey(req.params.file);
+    const { meta, err } = await loadMeta(pk.base, req);
+    if (err === 404) return res.status(404).send('Not found | MINYAWE-LINK');
+    if (err === 410) return res.status(410).send('Expired | MINYAWE-LINK');
+    if (needPw(meta, req)) return res.status(403).send('Locked — password required (?pw=) | MINYAWE-LINK');
+
+    const rx = realExt(meta);
+    const keepPw = req.query.pw ? '?pw=' + encodeURIComponent(req.query.pw) : '';
+    if (kindOf(meta) !== 'pdf') return res.redirect(302, `/o/${meta.slug || meta.id}.${rx}${keepPw}`);
+    if ((meta.size || 0) > PDF_MAX_BYTES) return res.redirect(302, `/d/${meta.slug || meta.id}.${rx}${keepPw}`);
+    if (pk.ext && pk.ext !== rx) return res.redirect(301, `/p/${meta.slug || meta.id}.${rx}${keepPw}`);
+
+    const direct = await storage.resolveDirectUrl(meta);
+    if (!direct) return res.status(410).send('Gone | MINYAWE-LINK');
+
+    const up = { 'User-Agent': 'Mozilla/5.0 (compatible; MINYAWE-LINK/8.0)' };
+    if (req.headers.range) up.Range = String(req.headers.range);
+    const tr = await fetch(direct, { headers: up, signal: AbortSignal.timeout(55000) });
+    if (!tr.ok && tr.status !== 206) return res.status(502).send('Upstream error | MINYAWE-LINK');
+
+    brandHeaders(res);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="${String(meta.original || 'file.pdf').replace(/["\\\r\n]/g, '')}"`,
+      'Accept-Ranges': tr.headers.get('accept-ranges') || 'bytes',
+      'Cache-Control': meta.pw ? 'no-store' : 'public, max-age=3600, s-maxage=86400'
+    });
+    const cl = tr.headers.get('content-length');
+    if (cl) res.set('Content-Length', cl);
+    const cr = tr.headers.get('content-range');
+    if (cr) res.set('Content-Range', cr);
+    res.status(tr.status === 206 ? 206 : 200);
+
+    if (req.method === 'HEAD' || !tr.body) return res.end();
+
+    // بث مباشر بدون تحميل الملف كله في الذاكرة
+    const { Readable } = require('stream');
+    const ns = Readable.fromWeb(tr.body);
+    ns.on('error', () => { try { res.destroy(); } catch {} });
+    res.on('close', () => { try { ns.destroy(); } catch {} });
+    ns.pipe(res);
+  } catch (e) { apiErr(res, e); }
 });
 
 function pwPage(brand, name, wrong) {
@@ -726,7 +794,7 @@ app.get('/v/:id', async (req, res) => {
   fileDB.incrementViews(meta.id).catch(() => {});
   const L = fileLinks(req, meta.id, meta);
   const pwSuffix = meta.pw && req.query.pw ? '?pw=' + encodeURIComponent(req.query.pw) : '';
-  const stream = L.stream + pwSuffix, dl = L.download + pwSuffix, open = L.open + pwSuffix, view = L.view;
+  const stream = L.stream + pwSuffix, dl = L.download + pwSuffix, open = L.open + pwSuffix, view = L.view, proxy = L.proxy + pwSuffix;
   const name = esc(meta.original), kind = kindOf(meta);
   const size = ((meta.size || 0) / 1048576).toFixed(2) + ' MB';
 
@@ -736,6 +804,16 @@ app.get('/v/:id', async (req, res) => {
   if (kind === 'image') player = `<img src="${stream}" alt="${name}">`;
   else if (kind === 'video') player = `<video src="${stream}" controls playsinline></video>`;
   else if (kind === 'audio') player = `<div class="fn">${name}</div><audio src="${stream}" controls></audio>`;
+  else if (kind === 'pdf') {
+    // iOS Safari مش بيعرض PDF جوه iframe — زر فتح مباشر بيشتغل
+    const ios = /iPad|iPhone|iPod/i.test(String(req.get('user-agent') || ''));
+    const big = (meta.size || 0) > PDF_MAX_BYTES;
+    player = big
+      ? `<div class="file">📄<div class="fn">${name}</div><div class="sz">${size}</div></div>`
+      : ios
+        ? `<div class="file">📄<div class="fn">${name}</div><div class="sz">${size}</div><div style="margin-top:16px"><a class="btn" href="${proxy}" target="_blank" rel="nofollow">افتح الـPDF</a></div></div>`
+        : `<iframe class="pdf" src="${proxy}" title="${name}" loading="lazy"></iframe>`;
+  }
   else if (kind === 'text') {
     let snippet = '';
     try {
@@ -758,6 +836,8 @@ app.get('/v/:id', async (req, res) => {
 .wrap{max-width:640px;margin:0 auto}.logo{font-weight:600;color:#fff;text-decoration:none}
 .card{background:#000;border:1px solid #292d30;border-radius:16px;padding:32px;margin-top:20px}
 img,video{max-width:100%;border-radius:16px}audio{width:100%;margin-top:12px}.fn{font-family:monospace;font-size:13px;word-break:break-all;margin:8px 0;color:#f0f0f0}
+iframe.pdf{width:100%;height:70vh;border:1px solid #292d30;border-radius:16px;background:#111;display:block}
+.file{padding:12px 0}
 pre.txt{direction:ltr;text-align:left;background:#000;border:1px solid #292d30;border-radius:16px;padding:24px;font-family:monospace;font-size:13px;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto;margin-top:12px;color:#f0f0f0}
 .sz{font-family:monospace;font-size:12px;color:#a1a4a5}.meta{font-family:monospace;font-size:12px;color:#a1a4a5;margin-top:10px}
 .btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:24px}
