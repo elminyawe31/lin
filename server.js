@@ -936,7 +936,9 @@ app.get('/api/cache/stats', (req, res) => {
 app.get('/api/cron/maintenance', async (req, res) => {
   const isVercelCron = !!req.get('x-vercel-cron');
   const secretOk = process.env.CRON_SECRET && req.query.secret === process.env.CRON_SECRET;
-  if (!isVercelCron && !secretOk && !isAdminReq(req)) {
+  // Vercel Cron بيبعت Authorization: Bearer <CRON_SECRET> لما CRON_SECRET متضاف كمتغير بيئة
+  const bearerOk = process.env.CRON_SECRET && req.get('authorization') === 'Bearer ' + process.env.CRON_SECRET;
+  if (!isVercelCron && !secretOk && !bearerOk && !isAdminReq(req)) {
     return res.status(403).json({ error: 'Forbidden' });
   }
   const result = await runMaintenance();
