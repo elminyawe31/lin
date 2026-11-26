@@ -1,15 +1,17 @@
 {
   "name": "minyawe-link",
-  "version": "7.0.0",
-  "description": "MINYAWE-LINK V7.0 by ELMINYAWE - SQLite DB, multi-cloud storage, notifications, health monitoring, cache, resume download, social sharing",
+  "version": "8.0.0",
+  "description": "MINYAWE-LINK V8.0 by ELMINYAWE — cloud-only multi-provider file vault for Vercel: browser-direct uploads, 302 redirect serving, zero Fast Origin Transfer, Postgres metadata",
   "main": "server.js",
   "engines": { "node": ">=20" },
-  "scripts": { "start": "node server.js" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
   "dependencies": {
-    "archiver": "^7.0.1",
-    "better-sqlite3": "^11.10.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "postgres": "^3.4.7"
   }
 }
